@@ -1,7 +1,12 @@
 name: CI Pipline
 
 on:
-  watch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   log-start-event:
