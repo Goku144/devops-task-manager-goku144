@@ -24,10 +24,12 @@ const seedDatabase = async () => {
     const count = await Task.countDocuments();
     if (count === 0) {
       await Task.insertMany(initialTasks);
-      console.log("Database seeded with default tasks!");
+      console.log("✅ Database seeded with 4 default tasks!");
+    } else {
+      console.log(`ℹ️ Database already has ${count} tasks. Skipping seed.`);
     }
   } catch (err) {
-    console.error("Error seeding database:", err);
+    console.error("❌ Seed error:", err);
   }
 };
 
@@ -64,3 +66,4 @@ router.post('/', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.seedDatabase = seedDatabase;

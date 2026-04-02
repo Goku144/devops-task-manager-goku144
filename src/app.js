@@ -5,16 +5,13 @@ app.use(express.json());
 
 const tasksRouter = require("./routes/tasks");
 
-// <-- Connect to MongoDB -->
-// It uses the environment variable from docker-compose.yml
-const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost:27017/tasksdb';
-mongoose.connect(mongoUrl)
-  .then(() => console.log("Connected to MongoDB successfully!"))
+mongoose.connect(process.env.MONGO_URL || 'mongodb://localhost:27017/tasksdb')
+  .then(async () => {
+    console.log("Connected to MongoDB successfully!");
+    // Call the seed function here to ensure the DB is ready
+    await tasksRouter.seedDatabase(); 
+  })
   .catch((err) => console.error("MongoDB connection error:", err));
-
-app.get('/', (req, res) => {
-  res.json({ message: "Welcome from Main branch" });
-});
 
 app.use("/tasks", tasksRouter);
 
