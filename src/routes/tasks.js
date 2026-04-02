@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
 
-// 1. Define the Database Schema
+// 1. Schema Definition
 const taskSchema = new mongoose.Schema({
   title: { type: String, required: true },
   completed: { type: Boolean, default: false }
@@ -10,60 +10,56 @@ const taskSchema = new mongoose.Schema({
 
 const Task = mongoose.model('Task', taskSchema);
 
-// 2. Default Initial Values
-const initialTasks = [
+// 2. Your Default Initial Values
+const defaultTasks = [
   { title: "Initial task", completed: true },
   { title: "Install Git and Node.js", completed: true },
   { title: "Learn DevOps basics", completed: false },
   { title: "Mergine the first time", completed: true }
 ];
 
-// 3. SEEDING LOGIC: Runs once to fill the DB if it's empty
+// 3. Seeding function (Called by app.js)
 const seedDatabase = async () => {
   try {
     const count = await Task.countDocuments();
     if (count === 0) {
-      await Task.insertMany(initialTasks);
-      console.log("✅ Database seeded with 4 default tasks!");
-    } else {
-      console.log(`ℹ️ Database already has ${count} tasks. Skipping seed.`);
+      await Task.insertMany(defaultTasks);
+      console.log("Default tasks added to MongoDB.");
     }
   } catch (err) {
-    console.error("❌ Seed error:", err);
+    console.error("Error seeding tasks:", err);
   }
 };
 
-// Execute the seed (only once per app start)
-seedDatabase();
-
-// 4. GET route - Reads from MongoDB
+// 4. GET Route
 router.get('/', async (req, res) => {
   try {
-    const tasks = await Task.find(); 
+    const tasks = await Task.find();
     res.json(tasks);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch tasks" });
+  } catch (err) {
+    res.status(500).json({ error: "Could not fetch tasks" });
   }
 });
 
-// 5. POST route - Saves new data to MongoDB
+// 5. POST Route (Supports single task or array)
 router.post('/', async (req, res) => {
   try {
-    let savedTasks;
     if (Array.isArray(req.body)) {
-      savedTasks = await Task.insertMany(req.body);
+      const newTasks = await Task.insertMany(req.body);
+      res.status(201).json(newTasks);
     } else {
       const newTask = new Task({
         title: req.body.title,
-        completed: req.body.completed ?? false
+        completed: req.body.completed || false
       });
-      savedTasks = await newTask.save();
+      const savedTask = await newTask.save();
+      res.status(201).json(savedTask);
     }
-    res.status(201).json(savedTasks);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to save task" });
+  } catch (err) {
+    res.status(400).json({ error: "Could not save task" });
   }
 });
 
+// Export both the router and the seed function
 module.exports = router;
 module.exports.seedDatabase = seedDatabase;
