@@ -1,29 +1,49 @@
 const express = require("express");
+const mongoose = require("mongoose"); // <-- Import mongoose
 const router = express.Router();
 
-const tasks = [
-  {id: 1, title: "Initial task", completed: true },
-  {id: 2, title: "Install Git and Node.js", completed: true },
-  {id: 3, title: "Learn DevOps basics", completed: false },
-  {id: 4, title: "Mergine the first time", completed: true}
-];
-
-router.get('/', (req, res) => {
-  res.json(tasks);
+// <-- 1. Define the Database Schema -->
+const taskSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  completed: { type: Boolean, default: false }
 });
 
-router.post('/', (req, res) => {
-  if(Array.isArray(req.body))
-  {
-      req.body.forEach((element, index) => {
-      tasks.push({id: tasks.length + 1, title: element.title, completed: element.completed});
-    });
+// <-- 2. Create the Model -->
+const Task = mongoose.model('Task', taskSchema);
+
+// <-- 3. Update GET route to Read from Database -->
+router.get('/', async (req, res) => {
+  try {
+    // Task.find() reaches into MongoDB and grabs everything
+    const tasks = await Task.find(); 
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch tasks" });
   }
-  else
-  {
-    tasks.push({id: tasks.length + 1, title: req.body.title, completed: req.body.completed});
+});
+
+// <-- 4. Update POST route to Save to Database -->
+router.post('/', async (req, res) => {
+  try {
+    let savedTasks;
+    
+    // Handle an array of tasks
+    if(Array.isArray(req.body)) {
+        savedTasks = await Task.insertMany(req.body);
+    } 
+    // Handle a single task
+    else {
+        const newTask = new Task({
+            title: req.body.title,
+            completed: req.body.completed || false
+        });
+        savedTasks = await newTask.save(); // Saves it permanently to MongoDB!
+    }
+    
+    res.status(201).json(savedTasks);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to save task" });
   }
-  res.status(201).json(tasks);
 });
 
 module.exports = router;
