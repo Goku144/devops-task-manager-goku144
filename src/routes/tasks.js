@@ -4,10 +4,12 @@ const router = express.Router();
 
 // 1. Updated Schema to use Number for _id
 const taskSchema = new mongoose.Schema({
-  _id: { type: Number }, // This lets us manually set 1, 2, 3...
-  title: { type: String, required: true },
-  completed: { type: Boolean, default: false } , 
-  versionKey: false
+    _id: { type: Number }, // This lets us manually set 1, 2, 3...
+    title: { type: String, required: true },
+    completed: { type: Boolean, default: false }
+  },
+  {
+    versionKey: false
 });
 
 const Task = mongoose.model('Task', taskSchema);
