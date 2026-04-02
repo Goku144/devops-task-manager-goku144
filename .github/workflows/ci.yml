@@ -2,8 +2,6 @@ name: CI Pipline
 
 on:
   push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
@@ -26,9 +24,6 @@ jobs:
       
       - name: Run Tests
         run: npm test      
-  deploy:
-    runs-on: ubuntu-latest
-    needs: integration
-    steps:
-      - name: build
-        run: echo ok
+
+      - name: Build Docker image
+        run: docker build -t task-manager-api .
